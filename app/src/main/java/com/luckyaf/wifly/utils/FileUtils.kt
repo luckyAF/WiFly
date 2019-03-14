@@ -10,6 +10,15 @@ import java.util.*
 import android.support.v4.content.FileProvider
 import android.os.Build
 import com.luckyaf.wifly.model.FileModel
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import android.content.ContentResolver
+import android.provider.MediaStore
+import android.provider.DocumentsContract
+import android.content.ContentUris
+import android.support.annotation.NonNull
+import android.util.Log
+import com.luckyaf.kommon.manager.ActivityManager
 
 
 /**
@@ -59,6 +68,61 @@ object FileUtils {
         }
         return fileModels
     }
+
+
+    //进行复制的函数
+    fun copyFile(oldFile: File, newPath: String) {
+        try {
+            var bytesum = 0
+            var byteread = 0
+            if (!oldFile.exists()) { //文件不存在时
+                val inStream = FileInputStream(oldFile.absoluteFile) //读入原文件
+                val fs = FileOutputStream(newPath)
+                val buffer = ByteArray(1024)
+                val length: Int
+                while (byteread  != -1) {
+                    bytesum += byteread //字节数 文件大小
+                    println(bytesum)
+                    fs.write(buffer, 0, byteread)
+                    byteread =  inStream.read(buffer)
+                }
+                inStream.close()
+            }
+        } catch (e: Exception) {
+            println("复制单个文件操作出错")
+            e.printStackTrace()
+
+        }
+
+    }
+
+
+    fun deleteFile(file: File): Boolean {
+        if (file.exists() && file.isFile && file.canWrite()) {
+            return file.delete()
+        } else if (file.isDirectory) {
+            if (file.list().isNullOrEmpty()) {
+                return file.delete()
+            } else {
+                val fileList = file.list()
+                for (filePaths in fileList) {
+                    val tempFile = File(file.absolutePath + "/" + filePaths)
+                    if (tempFile.isFile) {
+                        tempFile.delete()
+                    } else {
+                        deleteFile(tempFile)
+                        tempFile.delete()
+                    }
+                }
+            }
+            if (file.exists()) {
+                return file.delete()
+            }
+        }
+        return false
+    }
+
+
 
     /**
      * 打开文件

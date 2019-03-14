@@ -13,6 +13,8 @@ import com.koushikdutta.async.http.server.AsyncHttpServerRequest
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse
 import com.luckyaf.kommon.component.RxBus
 import com.luckyaf.kommon.extension.DEBUG
+import com.luckyaf.kommon.extension.INFO
+import com.luckyaf.kommon.utils.Logger
 import com.luckyaf.wifly.constant.Constants
 import org.json.JSONArray
 import org.json.JSONException
@@ -55,8 +57,9 @@ class WebServer private constructor(val mContext: Context) {
 
     private var mAsyncHttpServer: AsyncHttpServer? = null
     private var mAsyncServer: AsyncServer? = null
+    private var fileUploadWork = FileUploadWork()
     private var fileUploadHolder = FileUploadHolder()
-
+    var fileSize: Long = 0
 
     fun prepare() {
         mAsyncHttpServer = AsyncHttpServer()
@@ -162,9 +165,8 @@ class WebServer private constructor(val mContext: Context) {
      * 获取文件列表
      */
     private fun queryFiles(request: AsyncHttpServerRequest, response: AsyncHttpServerResponse) {
-        "queryFiles".DEBUG("获取文件列表")
         val array = JSONArray()
-        val dir = Constants.serverDir
+        val dir = File(Constants.serverDir)
         if (dir.exists() && dir.isDirectory) {
             val fileNames = dir.list()
             fileNames?.map {
@@ -188,7 +190,6 @@ class WebServer private constructor(val mContext: Context) {
                         } else {
                             jsonObject.put("size", "${fileLen}B")
                         }
-                        jsonObject.DEBUG("")
                         array.put(jsonObject)
                     } catch (e: JSONException) {
                         e.printStackTrace()
@@ -235,17 +236,24 @@ class WebServer private constructor(val mContext: Context) {
             return
         }
         body.setMultipartCallback { part: Part ->
+            "part name=${part.name} length=${part.length()}".DEBUG()
             if (part.isFile) {
                 body.setDataCallback { emitter: DataEmitter, bb: ByteBufferList ->
-                    fileUploadHolder.write(bb.allByteArray)
+                    val data = bb.allByteArray
+                   // fileUploadWork.post(data)
+                    fileUploadHolder.write(data)
+                    fileSize += data.size
                     bb.recycle()
                 }
             } else {
                 if (body.dataCallback == null) {
                     body.setDataCallback { emitter: DataEmitter, bb: ByteBufferList ->
                         try {
-                            val fileName = URLDecoder.decode(String(bb.allByteArray), "UTF-8")
+                            val fileName = URLDecoder.decode(String(bb.allByteArray), "utf-8")
+//                            fileUploadWork.init(fileName)
+//                            fileUploadWork.start()
                             fileUploadHolder.init(fileName)
+                            fileSize = 0
                         } catch (e: UnsupportedEncodingException) {
                             e.printStackTrace()
                         }
@@ -254,13 +262,23 @@ class WebServer private constructor(val mContext: Context) {
                     }
                 }
             }
+
         }
-        request.setEndCallback { e: Exception ->
+
+        request.setEndCallback {
+            "body.setEndCallback".INFO()
+            //fileUploadWork.finishWork()
+            "fileSize = $fileSize".INFO()
+            "totalSize = ${fileUploadHolder.totalSize}".INFO()
+            "request endCallback".INFO()
             fileUploadHolder.reset()
             response.end()
             RxBus.post(Constants.EVENT_UPLOAD_FILE_LIST)
         }
+
     }
+
+
 
 
     /**
@@ -295,11 +313,11 @@ class WebServer private constructor(val mContext: Context) {
     private fun getProgress(request: AsyncHttpServerRequest, response: AsyncHttpServerResponse){
         val res = JSONObject()
         val path = request.path.replace("/progress/", "")
-        if (path == fileUploadHolder.fileName) {
+        if (path == fileUploadWork.fileName) {
             try {
-                res.put("fileName", fileUploadHolder.fileName)
-                res.put("size", fileUploadHolder.totalSize)
-                res.put("progress", if (fileUploadHolder.fileOutPutStream == null) 1 else 0.1)
+                res.put("fileName", fileUploadWork.fileName)
+                res.put("size", fileUploadWork.totalSize)
+                res.put("progress", if (fileUploadWork.fileOutPutStream == null) 1 else 0.1)
             } catch (e: JSONException) {
                 e.printStackTrace()
             }

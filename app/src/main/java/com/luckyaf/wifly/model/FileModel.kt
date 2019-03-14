@@ -1,5 +1,7 @@
 package com.luckyaf.wifly.model
 
+import com.luckyaf.wifly.utils.TimeUtils
+import java.io.Serializable
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -14,8 +16,8 @@ data class FileModel(
     var path: String = "",
     var size: Long = 0,
     var lastModified: Long = 0
-){
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA)
+):Serializable{
+
     fun getFileSize():String{
         return when{
             size<1000 -> "${size}B"
@@ -26,6 +28,6 @@ data class FileModel(
     }
 
     fun getLastModifiedTime():String{
-        return dateFormat.format(Date(lastModified))
+        return TimeUtils.formatYYYYMMddHHmm(Date(lastModified))
     }
 }

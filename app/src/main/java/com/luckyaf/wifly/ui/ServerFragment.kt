@@ -46,22 +46,11 @@ class ServerFragment : BaseFragment() {
     override fun initView(savedInstanceState: Bundle?, contentView: View) {
         netChangeObserver = object : NetChangeObserver {
             override fun onNetChanged(state: NetworkType) {
-                if (state == NetworkType.NETWORK_WIFI) {
-                    wifiOn = true
-                    val wifiName = NetworkUtils.getConnectWifiName(mActivity)
-                    txtServerState.text = "已连接至 $wifiName"
-                    imgServerState.setImageResource(R.drawable.shared_wifi_enable)
-                } else {
-                    wifiOn = false
-                    txtServerState.text = "Wi-Fi 未连接"
-                    imgServerState.setImageResource(R.drawable.shared_wifi_shut_down)
-                    if(serverOn){
-                        closeServer()
-                    }
-                }
+                initWifiState(state)
             }
         }
         NetStateManager.registerObserver(netChangeObserver)
+        initWifiState(NetworkUtils.getNetworkType(mActivity))
         switchServer.clickWithTrigger {
             if(serverOn){
                 closeServer()
@@ -75,6 +64,22 @@ class ServerFragment : BaseFragment() {
 
     override fun start() {
 
+    }
+
+    private fun initWifiState(state: NetworkType){
+        if (state == NetworkType.NETWORK_WIFI) {
+            wifiOn = true
+            val wifiName = NetworkUtils.getConnectWifiName(mActivity)
+            txtServerState.text = "已连接至 $wifiName"
+            imgServerState.setImageResource(R.drawable.shared_wifi_enable)
+        } else {
+            wifiOn = false
+            txtServerState.text = "Wi-Fi 未连接"
+            imgServerState.setImageResource(R.drawable.shared_wifi_shut_down)
+            if(serverOn){
+                closeServer()
+            }
+        }
     }
 
     override fun onDetach() {

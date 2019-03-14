@@ -1,5 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-	<external-path path="Android/data/$(applicationId)/"  name="files_root" />
-	<external-path path="." name="cretin_install" />
+
+	<root-path
+		name="root"
+		path="" />
+
+	<files-path
+		name="files_path"
+		path="." />
+
+	<cache-path
+		name="cache_path"
+		path="." />
+
+	<external-path
+		name="external_path"
+		path="." />
+
+	<external-path
+		name="files_root"
+		path="Android/data/$(applicationId)/" />
+	<external-path
+		name="cretin_install"
+		path="." />
+
+	<external-files-path
+		name="external_files_path"
+		path="." />
+
+	<external-cache-path
+		name="external_cache_path"
+		path="." />
 </paths>

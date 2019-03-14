@@ -5,7 +5,9 @@ import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
 import android.view.View
 import com.luckyaf.kommon.base.BaseActivity
+import com.luckyaf.kommon.extension.DEBUG
 import com.luckyaf.kommon.extension.replaceFragmentInActivity
+import com.luckyaf.kommon.utils.Logger
 import com.luckyaf.kommon.utils.PermissionUtil
 import com.luckyaf.wifly.ui.FileFragment
 import com.luckyaf.wifly.ui.ServerFragment
@@ -46,6 +48,10 @@ class MainActivity : BaseActivity() {
 
             }
         }, RxPermissions(instance))
+
+        Logger.debug(true)
+
+
     }
 
     private fun replaceTo(new: Fragment){

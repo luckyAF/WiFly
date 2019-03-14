@@ -1,22 +1,20 @@
 package com.luckyaf.wifly.server
 
-import com.luckyaf.kommon.component.RxBus
 import com.luckyaf.wifly.constant.Constants
-import io.reactivex.FlowableSubscriber
-import io.reactivex.disposables.CompositeDisposable
-import org.reactivestreams.Subscription
+import com.luckyaf.wifly.utils.FlowableWork
 import java.io.*
 
 /**
  * 类描述：
- * @author Created by luckyAF on 2019-02-25
+ * @author Created by luckyAF on 2019-03-13
  *
  */
-class FileUploadHolder {
+class FileUploadWork :FlowableWork<ByteArray>(){
     var fileName: String? = null
     var receivedFile: File? = null
     var fileOutPutStream: BufferedOutputStream? = null
     var totalSize: Long = 0
+
     fun init(name: String) {
         this.fileName = name
         totalSize = 0
@@ -33,6 +31,10 @@ class FileUploadHolder {
 
     }
 
+    override fun finishWork() {
+        super.finishWork()
+        reset()
+    }
 
     fun reset() {
         if (fileOutPutStream != null) {
@@ -46,15 +48,21 @@ class FileUploadHolder {
         fileOutPutStream = null
     }
 
-    fun write(data: ByteArray) {
+    private fun write(data: ByteArray) {
         if (fileOutPutStream != null) {
             try {
-                fileOutPutStream?.write(data)
+                fileOutPutStream!!.write(data)
+
             } catch (e: IOException) {
                 e.printStackTrace()
             }
 
         }
         totalSize += data.size.toLong()
+    }
+
+
+    override fun handleData(data: ByteArray) {
+        write(data)
     }
 }

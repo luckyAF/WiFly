@@ -27,7 +27,7 @@ object Constants {
         Environment.getExternalStorageDirectory().toString() + File.separator + "WiFly"
 
 
-    var serverDir: File
+    var serverDir: String
     var serverPort:Int
     var deletable:Boolean
     var uploadAble :Boolean
@@ -35,8 +35,7 @@ object Constants {
 
     init {
         serverPort = getFromCache(KEY_APP_SERVER_PORT,12345)
-        val path = getFromCache(KEY_APP_SERVER_DIR, DefaultServerDir)
-        serverDir = File(path)
+        serverDir = getFromCache(KEY_APP_SERVER_DIR, DefaultServerDir)
         deletable = getFromCache(KEY_APP_ALLOW_DELETE,true)
         uploadAble = getFromCache(KEY_APP_ALLOW_UPLOAD,true)
     }
@@ -45,7 +44,7 @@ object Constants {
 
     fun updateServerDir(newDir: String) {
         newDir.saveToCache(KEY_APP_SERVER_DIR)
-        serverDir = File(newDir)
+        serverDir = newDir
     }
 
     fun updateServerPort(newPort:Int){
